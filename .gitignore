@@ -1,2 +1,4 @@
-# WebStorm
+# Ignore IDE and metadata files
 .idea/
+# Node modules
+node_modules/
