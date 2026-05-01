@@ -53,5 +53,8 @@
     "test-renderer": "^1.2.0",
     "typescript": "~5.9.2"
   },
+  "setupFilesAfterEnv": [
+    "<rootDir>/jest/setup.ts"
+  ],
   "private": true
 }
