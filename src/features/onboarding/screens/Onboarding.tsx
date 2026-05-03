@@ -106,7 +106,13 @@ const OnboardingScreen = () => {
             colors={colors}
           />
         )}
-        {step === 3 && <StepSelfie colors={colors} />}
+        {step === 3 && (
+          <StepSelfie
+            hasSelfie={form.hasSelfie}
+            onCapture={() => updateField("hasSelfie", true)}
+            colors={colors}
+          />
+        )}
         {step === 4 && (
           <StepAddress
             form={form}
