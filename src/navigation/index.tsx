@@ -9,6 +9,8 @@ import HomeScreen from "./screens/Home";
 import LoginScreen from "@/features/login/screens/Login";
 import OnboardingScreen from "@/features/onboarding/screens/Onboarding";
 import SettingsScreen from "@/features/settings/screens/Settings";
+import useIsSignedIn from "@/store/authentication/hooks/useIsSignedIn";
+import useIsSignedOut from "@/store/authentication/hooks/useIsSignedOut";
 
 const RootTabs = createBottomTabNavigator({
   screens: {
@@ -42,7 +44,7 @@ const RootTabs = createBottomTabNavigator({
 const RootStack = createNativeStackNavigator({
   groups: {
     Authenticated: {
-      if: () => true,
+      if: useIsSignedIn,
       screens: {
         RootTabs: {
           screen: RootTabs,
@@ -56,7 +58,7 @@ const RootStack = createNativeStackNavigator({
       },
     },
     Unauthenticated: {
-      if: () => false,
+      if: useIsSignedOut,
       screens: {
         Login: {
           screen: LoginScreen,
