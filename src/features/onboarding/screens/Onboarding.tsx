@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -8,47 +9,114 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useTheme } from "@react-navigation/native";
+import {
+  CommonActions,
+  useNavigation,
+  useTheme,
+} from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { ErrorPalette, FontSize, Radius, Spacing } from "@/theme";
+import useDraftSubmit from "@/features/onboarding/hooks/useDraftSubmit";
 import {
-  type ApiFieldError,
-  type FormData,
-  INITIAL_FORM,
-  STEP_TITLES,
-  TOTAL_STEPS,
-} from "./types";
+  BLANK_DRAFT,
+  useOnboardingStore,
+} from "@/store/onboarding/onboardingStore";
 import { StepProfile } from "./StepProfile";
 import { StepDocument } from "./StepDocument";
 import { StepSelfie } from "./StepSelfie";
 import { StepAddress } from "./StepAddress";
 import { StepReview } from "./StepReview";
+import {
+  type DocumentType,
+  type FormData,
+  STEP_TITLES,
+  TOTAL_STEPS,
+} from "./types";
 
 const OnboardingScreen = () => {
   const { colors } = useTheme();
+  const navigation = useNavigation();
 
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState<FormData>(INITIAL_FORM);
-  // Placeholder — will be populated from API response after draft submission
-  const [apiErrors] = useState<ApiFieldError[]>([]);
+  const draft = useOnboardingStore((state) => state.draft);
+  const step = useOnboardingStore((state) => state.currentStep);
+  const updateDraft = useOnboardingStore((state) => state.updateDraft);
+  const setCurrentStep = useOnboardingStore((state) => state.setCurrentStep);
+  const clearDraft = useOnboardingStore((state) => state.clearDraft);
 
+  const { submit, isLoading: isSubmitting, apiErrors } = useDraftSubmit();
+
+  // Flatten draft into the shape step components expect
+  const form: FormData = {
+    fullName: draft?.profile.fullName ?? "",
+    dateOfBirth: draft?.profile.dateOfBirth ?? "",
+    nationality: draft?.profile.nationality ?? "",
+    documentType: (draft?.document.documentType ?? "") as DocumentType | "",
+    documentNumber: draft?.document.documentNumber ?? "",
+    hasSelfie: draft?.selfie.hasSelfie ?? false,
+    addressLine: draft?.address.addressLine1 ?? "",
+    city: draft?.address.city ?? "",
+    country: draft?.address.country ?? "",
+  };
+
+  // Map flat FormData key → nested draft section
   const updateField = <K extends keyof FormData>(
     key: K,
     value: FormData[K],
   ) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    switch (key) {
+      case "fullName":
+      case "dateOfBirth":
+      case "nationality":
+        updateDraft({ profile: { [key]: value as string } });
+        break;
+      case "documentType":
+        updateDraft({ document: { documentType: value as DocumentType } });
+        break;
+      case "documentNumber":
+        updateDraft({ document: { documentNumber: value as string } });
+        break;
+      case "hasSelfie":
+        updateDraft({ selfie: { hasSelfie: value as boolean } });
+        break;
+      case "addressLine":
+        updateDraft({ address: { addressLine1: value as string } });
+        break;
+      case "city":
+      case "country":
+        updateDraft({ address: { [key]: value as string } });
+        break;
+    }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < TOTAL_STEPS) {
-      setStep((s) => s + 1);
+      setCurrentStep(step + 1);
     } else {
-      // TODO: call submission API and populate apiErrors from response
+      const result = await submit(draft ?? BLANK_DRAFT);
+      if (result) {
+        clearDraft();
+        Alert.alert(
+          "Application Submitted",
+          "Your application has been received and is under review.",
+          [
+            {
+              text: "OK",
+              onPress: () =>
+                navigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: "RootTabs" }],
+                  }),
+                ),
+            },
+          ],
+        );
+      }
     }
   };
 
   const handleBack = () => {
-    if (step > 1) setStep((s) => s - 1);
+    if (step > 1) setCurrentStep(step - 1);
   };
 
   const isLastStep = step === TOTAL_STEPS;
@@ -173,12 +241,23 @@ const OnboardingScreen = () => {
         )}
 
         <TouchableOpacity
-          style={[styles.nextButton, { backgroundColor: colors.primary }]}
+          style={[
+            styles.nextButton,
+            {
+              backgroundColor: colors.primary,
+              opacity: isLastStep && isSubmitting ? 0.7 : 1,
+            },
+          ]}
           onPress={handleNext}
+          disabled={isLastStep && isSubmitting}
           activeOpacity={0.85}
         >
           <Text style={styles.nextButtonText}>
-            {isLastStep ? "Submit" : "Next"}
+            {isLastStep && isSubmitting
+              ? "Submitting…"
+              : isLastStep
+                ? "Submit"
+                : "Next"}
           </Text>
           {!isLastStep && (
             <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />

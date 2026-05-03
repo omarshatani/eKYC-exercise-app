@@ -11,27 +11,28 @@ import {
 } from "react-native";
 import { useTheme } from "@react-navigation/native";
 import { ErrorPalette, FontSize, Radius, Spacing } from "@/theme";
+import { useAuthStore } from "@/store/authentication/authStore";
 
-type LoginErrorType = "session_expired" | "generic" | null;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const LOGIN_ERROR_MESSAGES: Record<NonNullable<LoginErrorType>, string> = {
+const AUTH_ERROR_MESSAGES = {
+  invalid_credentials: "Incorrect email or password.",
   session_expired: "Your session has expired. Please sign in again.",
   generic: "Something went wrong. Please try again later.",
 };
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export default function LoginScreen() {
+const LoginScreen = () => {
   const { colors } = useTheme();
+  const { login, status, error } = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  // Placeholder — will be driven by global auth state (values: 'session_expired' | 'generic' | null)
-  const [loginError] = useState<LoginErrorType>(null);
 
-  function validate(): boolean {
+  const isLoggingIn = status === "logging_in";
+
+  const validate = (): boolean => {
     let valid = true;
 
     if (!email.trim()) {
@@ -51,12 +52,14 @@ export default function LoginScreen() {
     }
 
     return valid;
-  }
+  };
 
-  function handleLogin() {
+  console.log("error", error);
+
+  const handleLogin = async () => {
     if (!validate()) return;
-    // TODO: dispatch global auth action
-  }
+    await login(email, password);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -109,6 +112,7 @@ export default function LoginScreen() {
               autoCapitalize="none"
               keyboardType="email-address"
               autoComplete="email"
+              editable={!isLoggingIn}
             />
             {!!emailError && (
               <Text style={styles.fieldError}>{emailError}</Text>
@@ -128,7 +132,7 @@ export default function LoginScreen() {
                   backgroundColor: colors.card,
                 },
               ]}
-              placeholder="Min. 6 characters"
+              placeholder="Min. 4 characters"
               placeholderTextColor="#9CA3AF"
               value={password}
               onChangeText={(v) => {
@@ -136,6 +140,7 @@ export default function LoginScreen() {
                 setPasswordError("");
               }}
               secureTextEntry
+              editable={!isLoggingIn}
             />
             {!!passwordError && (
               <Text style={styles.fieldError}>{passwordError}</Text>
@@ -143,14 +148,23 @@ export default function LoginScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.submitButton, { backgroundColor: colors.primary }]}
+            style={[
+              styles.submitButton,
+              {
+                backgroundColor: colors.primary,
+                opacity: isLoggingIn ? 0.7 : 1,
+              },
+            ]}
             onPress={handleLogin}
+            disabled={isLoggingIn}
             activeOpacity={0.85}
           >
-            <Text style={styles.submitButtonText}>Sign in</Text>
+            <Text style={styles.submitButtonText}>
+              {isLoggingIn ? "Signing in…" : "Sign in"}
+            </Text>
           </TouchableOpacity>
 
-          {loginError !== null && (
+          {error !== null && (
             <View
               style={[
                 styles.errorBanner,
@@ -163,7 +177,7 @@ export default function LoginScreen() {
               <Text
                 style={[styles.errorBannerText, { color: ErrorPalette.text }]}
               >
-                {LOGIN_ERROR_MESSAGES[loginError]}
+                {AUTH_ERROR_MESSAGES[error]}
               </Text>
             </View>
           )}
@@ -171,7 +185,9 @@ export default function LoginScreen() {
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
+};
+
+export default LoginScreen;
 
 const styles = StyleSheet.create({
   root: {

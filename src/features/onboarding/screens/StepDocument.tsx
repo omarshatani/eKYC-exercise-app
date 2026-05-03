@@ -43,7 +43,7 @@ export function StepDocument({
                   style={[
                     styles.chipText,
                     {
-                      color: isSelected ? colors.primary : "#6B7280",
+                      color: isSelected ? colors.card : "#6B7280",
                       fontWeight: isSelected ? "700" : "500",
                     },
                   ]}

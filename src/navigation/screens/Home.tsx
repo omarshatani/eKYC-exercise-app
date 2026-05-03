@@ -1,21 +1,34 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useNavigation, useTheme } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { FontSize, Radius, Spacing } from "@/theme";
 import { STEP_TITLES, TOTAL_STEPS } from "@/features/onboarding/screens/types";
+import useFetchUser from "@/features/user/hooks/useFetchUser";
+import { useAuthStore } from "@/store/authentication/authStore";
+import { useOnboardingStore } from "@/store/onboarding/onboardingStore";
 
 const HomeScreen = () => {
   const { colors } = useTheme();
   const navigation = useNavigation();
+  const { fetchUser } = useFetchUser();
+  const user = useAuthStore((state) => state.user);
 
-  // Placeholder — will be replaced by global draft state.
-  // null = no draft; 1–5 = draft in progress at that step.
-  const [draftStep] = useState<number | null>(null);
+  const draft = useOnboardingStore((state) => state.draft);
+  const currentStep = useOnboardingStore((state) => state.currentStep);
+  const draftStep = draft !== null ? currentStep : null;
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title, { color: colors.text }]}>My Application</Text>
+      {user && (
+        <Text style={[styles.title, { color: colors.text }]}>
+          Welcome, {user.fullName}
+        </Text>
+      )}
 
       {draftStep === null ? (
         <View
@@ -53,10 +66,8 @@ const HomeScreen = () => {
           ]}
         >
           <View style={styles.badgeRow}>
-            <View
-              style={[styles.badge, { backgroundColor: colors.primary + "1A" }]}
-            >
-              <Text style={[styles.badgeText, { color: colors.primary }]}>
+            <View style={[styles.badge, { backgroundColor: colors.primary }]}>
+              <Text style={[styles.badgeText, { color: colors.card }]}>
                 In Progress
               </Text>
             </View>
