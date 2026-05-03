@@ -3,11 +3,72 @@ import {
   StaticParamList,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
 import HomeScreen from "./screens/Home";
+import LoginScreen from "@/features/login/screens/Login";
+import OnboardingScreen from "@/features/onboarding/screens/Onboarding";
+import SettingsScreen from "@/features/settings/screens/Settings";
+
+const RootTabs = createBottomTabNavigator({
+  screens: {
+    Home: {
+      screen: HomeScreen,
+      options: {
+        tabBarIcon: ({ color, size, focused }) => (
+          <Ionicons
+            name={focused ? "home" : "home-outline"}
+            size={size}
+            color={color}
+          />
+        ),
+      },
+    },
+    Settings: {
+      screen: SettingsScreen,
+      options: {
+        tabBarIcon: ({ color, size, focused }) => (
+          <Ionicons
+            name={focused ? "settings" : "settings-outline"}
+            size={size}
+            color={color}
+          />
+        ),
+      },
+    },
+  },
+});
 
 const RootStack = createNativeStackNavigator({
-  screens: {
-    Home: HomeScreen,
+  groups: {
+    Authenticated: {
+      if: () => true,
+      screens: {
+        RootTabs: {
+          screen: RootTabs,
+          options: {
+            headerShown: false,
+          },
+        },
+        Onboarding: {
+          screen: OnboardingScreen,
+          options: {
+            headerShown: false,
+          },
+        },
+      },
+    },
+    Unauthenticated: {
+      if: () => false,
+      screens: {
+        Login: {
+          screen: LoginScreen,
+          options: {
+            headerShown: false,
+          },
+        },
+      },
+    },
   },
 });
 
