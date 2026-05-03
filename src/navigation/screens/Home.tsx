@@ -1,10 +1,10 @@
-import {Text, View, StyleSheet} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
   return (
-      <View style={styles.container}>
-        <Text>Edit src/navigation/screens/Home.tsx to edit this screen.</Text>
-      </View>
+    <View style={styles.container}>
+      <Text>Edit src/navigation/screens/Home.tsx to edit this screen.</Text>
+    </View>
   );
 }
 
