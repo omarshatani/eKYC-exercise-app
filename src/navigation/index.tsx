@@ -52,9 +52,6 @@ const RootStack = createNativeStackNavigator({
         },
         Onboarding: {
           screen: OnboardingScreen,
-          options: {
-            headerShown: false,
-          },
         },
       },
     },
