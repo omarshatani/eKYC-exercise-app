@@ -54,6 +54,9 @@ const RootStack = createNativeStackNavigator({
         },
         Onboarding: {
           screen: OnboardingScreen,
+          linking: {
+            path: "onboarding/:step",
+          },
         },
       },
     },
