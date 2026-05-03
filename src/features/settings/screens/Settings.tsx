@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import { StyleSheet, Switch, Text, View } from "react-native";
-import { useTheme } from "@react-navigation/native";
+import { DarkTheme, useTheme } from "@react-navigation/native";
 import { FontSize, Radius, Spacing } from "@/theme";
+import { useThemeStore } from "@/store/theme/themeStore";
 
 export default function SettingsScreen() {
   const { colors } = useTheme();
-
-  // Placeholder — will be replaced by global theme state
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const theme = useThemeStore((state) => state.theme);
+  const toggleTheme = useThemeStore((state) => state.toggleTheme);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -33,8 +33,8 @@ export default function SettingsScreen() {
               </Text>
             </View>
             <Switch
-              value={isDarkMode}
-              onValueChange={setIsDarkMode}
+              value={theme === DarkTheme}
+              onValueChange={toggleTheme}
               trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor="#FFFFFF"
             />
