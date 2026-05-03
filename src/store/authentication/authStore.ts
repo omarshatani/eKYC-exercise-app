@@ -26,6 +26,7 @@ interface Action {
   logout: () => void;
   refreshSession: () => Promise<void>;
   isTokenExpired: () => boolean;
+  setError: (error: AuthError) => void;
 }
 
 type AuthStore = State & Action;
@@ -90,6 +91,9 @@ const authStore = create<AuthStore>()(
         const expired = new Date(session.expiresAt) < new Date();
         if (expired) set({ status: "expired" });
         return expired;
+      },
+      setError: (error) => {
+        set({ error });
       },
     }),
     {
