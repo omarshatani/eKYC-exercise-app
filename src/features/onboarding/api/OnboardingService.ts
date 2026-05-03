@@ -1,5 +1,5 @@
-import type { OnboardingDraft } from "@/features/onboarding/api/types";
 import { OnboardingService } from "@/features/onboarding/api/types";
+import { OnboardingDraft } from "@/features/onboarding/api/models/OnboardingDraft";
 
 type FieldError = { field: string; message: string };
 type ValidationResult = { valid: boolean; errors: FieldError[] };
